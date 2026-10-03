@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Live Stream Premium</title>
 <!-- Google Fonts for Modern Typography -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -69,19 +69,22 @@
     flex-direction: column;
     padding: 20px;
     gap: 20px;
+    justify-content: center; /* Centers video vertically */
   }
 
   .player-wrapper {
-    flex: 1;
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     position: relative;
-    border-radius: 24px;
+    border-radius: 16px;
     overflow: hidden;
     background: #000;
     border: 1px solid var(--glass-border);
     box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(42, 171, 238, 0.15);
+    /* Forces widescreen aspect ratio to remove huge black top/bottom bars on mobile */
+    aspect-ratio: 16 / 9;
+    max-height: 80vh;
   }
 
   #main-iframe {
@@ -89,36 +92,51 @@
     height: 100%;
     border: none;
     display: block;
-    position: relative;
+    position: absolute;
+    top: 0;
+    left: 0;
     z-index: 2;
   }
 
   /* Floating Bottom Bar (Glassmorphism) */
   .floating-footer {
-    height: auto;
+    position: relative;
+    z-index: 10;
     display: flex;
     justify-content: center;
-    padding-bottom: 10px;
+    padding: 10px 20px 30px 20px; /* Extra bottom padding for phone swipe bar */
+    padding-bottom: max(30px, env(safe-area-inset-bottom));
   }
 
   .glass-bar {
     display: inline-flex;
     align-items: center;
+    justify-content: space-between;
     background: var(--glass-bg);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border: 1px solid var(--glass-border);
-    padding: 12px 24px;
+    padding: 10px 20px;
     border-radius: 50px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: auto;
+    max-width: 100%;
+  }
+
+  .support-text {
+    margin-right: 15px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #cbd5e1;
   }
 
   .telegram-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 12px;
     background: linear-gradient(135deg, #2AABEE, #1c88c3);
-    padding: 10px 24px;
+    padding: 12px 24px;
     border-radius: 50px;
     text-decoration: none;
     color: #fff;
@@ -192,7 +210,7 @@
   .modal-content {
     background: rgba(25, 30, 40, 0.8);
     border: 1px solid var(--glass-border);
-    padding: 40px;
+    padding: 40px 30px;
     border-radius: 24px;
     text-align: center;
     max-width: 400px;
@@ -207,8 +225,8 @@
   }
 
   .modal-icon {
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
     background: rgba(42, 171, 238, 0.1);
     border-radius: 50%;
     display: flex;
@@ -219,21 +237,21 @@
   }
 
   .modal-icon svg {
-    width: 35px;
-    height: 35px;
+    width: 30px;
+    height: 30px;
     fill: var(--tg-blue);
   }
 
   .modal-content h2 {
-    font-size: 24px;
+    font-size: 22px;
     margin-bottom: 10px;
     font-weight: 800;
   }
 
   .modal-content p {
     color: #a0aec0;
-    font-size: 15px;
-    margin-bottom: 30px;
+    font-size: 14px;
+    margin-bottom: 25px;
     line-height: 1.5;
   }
 
@@ -254,25 +272,15 @@
     transition: background 0.3s;
   }
 
-  .btn-join:hover {
-    background: #1c88c3;
-  }
-
   .btn-skip {
     background: transparent;
     color: #a0aec0;
     border: none;
-    padding: 14px;
+    padding: 12px;
     border-radius: 12px;
     font-weight: 600;
-    font-size: 15px;
+    font-size: 14px;
     cursor: pointer;
-    transition: color 0.3s, background 0.3s;
-  }
-
-  .btn-skip:hover {
-    color: #fff;
-    background: rgba(255,255,255,0.05);
   }
 
   /* Loader and Error States */
@@ -289,8 +297,8 @@
   }
 
   .spinner {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border: 4px solid rgba(255, 255, 255, 0.1);
     border-top-color: var(--tg-blue);
     border-radius: 50%;
@@ -300,11 +308,36 @@
   @keyframes spin { 100% { transform: rotate(360deg); } }
 
   .status-text {
-    font-size: 14px;
+    font-size: 12px;
     color: #a0aec0;
     letter-spacing: 1px;
     text-transform: uppercase;
     font-weight: 600;
+  }
+
+  /* --- MOBILE OPTIMIZATIONS --- */
+  @media (max-width: 600px) {
+    .app-container {
+      padding: 10px;
+      gap: 15px;
+    }
+    .player-wrapper {
+      border-radius: 12px;
+    }
+    .glass-bar {
+      width: 100%;
+      padding: 8px;
+    }
+    .support-text {
+      display: none; /* Hides "Support Us" on mobile so the button fits perfectly */
+    }
+    .telegram-btn {
+      width: 100%;
+      padding: 14px 20px;
+    }
+    .floating-footer {
+      padding: 10px 10px 20px 10px;
+    }
   }
 </style>
 </head>
@@ -317,10 +350,9 @@
   <div class="player-wrapper">
     <div class="loader-container" id="loading-state">
       <div class="spinner"></div>
-      <div class="status-text" id="status-message">Connecting Stream...</div>
+      <div class="status-text" id="status-message">Connecting...</div>
     </div>
     
-    <!-- Iframe is completely restricted from triggering popups or redirecting parent -->
     <iframe id="main-iframe" 
             allowfullscreen 
             allow="encrypted-media; fullscreen; autoplay" 
@@ -332,7 +364,7 @@
   <!-- Glassmorphism Bottom Bar -->
   <div class="floating-footer">
     <div class="glass-bar">
-      <span style="margin-right: 15px; font-weight: 600; font-size: 14px; color: #cbd5e1;">Support Us:</span>
+      <span class="support-text">Support Us:</span>
       <a href="https://t.me/+w_oKk-2R2OgyNDNl" target="_blank" class="telegram-btn">
         <div class="telegram-icon">
           <svg viewBox="0 0 24 24">
@@ -354,7 +386,7 @@
       </svg>
     </div>
     <h2>Join our Telegram!</h2>
-    <p>Get instant updates, backup links, and chat with the community. Don't miss out on any streams!</p>
+    <p>Get instant updates, backup links, and chat with the community. Don't miss out!</p>
     <div class="modal-actions">
       <a href="https://t.me/+w_oKk-2R2OgyNDNl" target="_blank" class="btn-join" id="btn-join-now">Join Channel Now</a>
       <button class="btn-skip" id="btn-skip">Maybe Later</button>
@@ -365,22 +397,16 @@
 <script>
 window.addEventListener('DOMContentLoaded', () => {
 
-  // Modal Logic (Replaces the ugly confirm popup)
   const modal = document.getElementById('tg-modal');
   const skipBtn = document.getElementById('btn-skip');
   const joinBtn = document.getElementById('btn-join-now');
 
-  // Show modal with a slight delay for smooth effect
-  setTimeout(() => {
-    modal.classList.add('active');
-  }, 300);
+  setTimeout(() => { modal.classList.add('active'); }, 300);
 
-  // Close modal logic
   const closeModal = () => modal.classList.remove('active');
   skipBtn.addEventListener('click', closeModal);
   joinBtn.addEventListener('click', closeModal);
 
-  // Video Fetching Logic
   const urlParams = new URLSearchParams(window.location.search);
   const id = urlParams.get('id');
   const iframe = document.getElementById('main-iframe');
@@ -396,13 +422,11 @@ window.addEventListener('DOMContentLoaded', () => {
         if (targetData && targetData.iframeSrc) {
           iframe.src = targetData.iframeSrc;
           
-          // Fade in iframe once loaded
           iframe.onload = () => {
             loader.style.display = 'none';
             iframe.style.opacity = '1';
           };
 
-          // Hit tracking
           if (targetData.hit) {
             fetch(targetData.hit).catch(() => {});
           }
@@ -420,7 +444,7 @@ window.addEventListener('DOMContentLoaded', () => {
   function showError(msg) {
     const spinner = document.querySelector('.spinner');
     if (spinner) spinner.style.display = 'none';
-    statusMsg.style.color = '#ef4444'; // Red error text
+    statusMsg.style.color = '#ef4444';
     statusMsg.innerText = msg;
   }
 
