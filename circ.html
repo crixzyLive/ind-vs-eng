@@ -1,446 +1,430 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>The Cricsters ✘ BigCric</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <meta name="theme-color" content="#0a1733" />
-  <meta name="referrer" content="no-referrer" />
- 
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
-  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
- 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/controls.css" crossorigin="anonymous" />
-  <script src="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/shaka-player.ui.min.js" crossorigin="anonymous"></script>
-  <script disable-devtool-auto src='https://cdn.jsdelivr.net/npm/disable-devtool@latest'></script>
-
-  <style>
-    :root {
-      --blue1: #0b3b8c;
-      --blue2: #072b6a;
-      --bg: #0a1733;
-      --text: #ffffff;
-      --accent: #1e78ff;
-      --card-border: rgba(30, 120, 255, 0.25);
-      --shadow: rgba(0, 0, 0, 0.25);
-      --transition: all 0.2s ease;
-    }
- 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
- 
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      -webkit-user-select: none;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      line-height: 1.5;
-    }
- 
-    .container { max-width: 980px; margin: 14px auto 0; padding: 0 12px 24px; }
- 
-    .header {
-      background: linear-gradient(135deg, var(--blue1), var(--blue2));
-      font-weight: 800;
-      text-align: center;
-      padding: 12px 16px;
-      border-radius: 12px;
-      letter-spacing: 0.4px;
-      box-shadow: 0 8px 20px var(--shadow);
-      border: 1px solid rgba(255,255,255,0.08);
-      margin-bottom: 12px;
-    }
- 
-    .player-panel {
-      background: #000;
-      border-radius: 10px;
-      overflow: hidden;
-      margin: 12px 0;
-      box-shadow: 0 10px 26px var(--shadow);
-      border: 3px solid var(--card-border);
-      position: relative;
-    }
- 
-    .player-wrapper { width: 100%; position: relative; }
-    .video-player { width: 100%; aspect-ratio: 16/9; background: #000; display: block; }
-    .shaka-spinner-container, .shaka-buffering-spinner, .shaka-spinner { display: none !important; }
- 
-    .error-overlay {
-      position: absolute; inset: 0;
-      background: rgba(0,0,0,0.9);
-      display: none; flex-direction: column;
-      align-items: center; justify-content: center;
-      z-index: 11; gap: 12px; padding: 20px; text-align: center;
-    }
-    .error-overlay.visible { display: flex; }
-    .error-message { font-size: 15px; opacity: 0.9; max-width: 320px; }
- 
-    .retry-btn {
-      padding: 10px 24px; border-radius: 8px;
-      background: var(--accent); color: #fff; border: none;
-      font-weight: 700; font-size: 14px; cursor: pointer; transition: var(--transition);
-    }
-    .retry-btn:hover { background: #3388ff; transform: translateY(-1px); }
- 
-    .toast {
-      position: fixed; bottom: 24px; left: 50%;
-      transform: translateX(-50%) translateY(80px);
-      background: rgba(30,30,30,0.95); color: #fff;
-      padding: 12px 24px; border-radius: 10px;
-      font-size: 14px; font-weight: 600;
-      z-index: 2000; pointer-events: none; opacity: 0;
-      transition: all 0.35s ease;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4); white-space: nowrap;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
- 
-    .section {
-      background: linear-gradient(135deg, var(--blue1), var(--blue2));
-      border-radius: 12px; padding: 14px; margin: 12px 0;
-      box-shadow: 0 8px 20px var(--shadow);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .section-title { margin: 0 0 10px; text-align: center; font-size: 18px; letter-spacing: 0.2px; }
-    .section-row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-    .section-wrapper { display: flex; gap: 12px; }
-    .section-wrapper .section { flex: 1; margin: 0; }
- 
-    .btn {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 10px 16px; border-radius: 12px;
-      font-weight: 700; font-size: 14px;
-      background: transparent; color: #fff;
-      border: 2px solid rgba(255,255,255,0.85);
-      text-decoration: none; cursor: pointer; transition: var(--transition);
-    }
-    .btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
-    .btn-icon { width: 20px; height: 20px; }
- 
-    .popup-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
-      display: none; align-items: center; justify-content: center;
-      z-index: 1000; padding: 20px;
-    }
-    .popup-overlay.visible { display: flex; }
-    .popup-card {
-      background: linear-gradient(135deg, #1a3a6e, #0d2247);
-      border-radius: 16px; padding: 28px; text-align: center;
-      max-width: 380px; width: 100%;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .popup-title { font-size: 22px; font-weight: 800; margin-bottom: 20px; }
-    .popup-btn {
-      display: block; width: 100%; padding: 12px; border: none;
-      border-radius: 10px; font-weight: 700; font-size: 15px;
-      cursor: pointer; margin-top: 10px; transition: var(--transition);
-    }
-    .popup-btn-primary { background: #0088cc; color: #fff; }
-    .popup-btn-primary:hover { background: #009de0; }
-    .popup-btn-secondary { background: rgba(255,255,255,0.12); color: #fff; }
-    .popup-btn-secondary:hover { background: rgba(255,255,255,0.2); }
- 
-    .shaka-controls-container { transition: opacity 0.3s ease; }
-    .shaka-bottom-controls { padding: 4px 8px !important; }
-    .shaka-volume-bar-container { margin: 0 4px; }
-    .shaka-overflow-menu, .shaka-settings-menu { border-radius: 8px !important; }
- 
-    .promo-card {
-      display: block; margin: 12px 0; border-radius: 12px; overflow: hidden;
-      box-shadow: 0 8px 20px var(--shadow);
-      border: 1px solid rgba(255,255,255,0.08);
-      text-decoration: none; color: #fff; transition: transform 0.2s;
-    }
-    .promo-card:hover { transform: translateY(-2px); }
-    .promo-card:active { transform: translateY(1px); }
-    .promo-image { width: 100%; height: auto; display: block; }
-    .promo-content {
-      background: linear-gradient(135deg, var(--blue1), var(--blue2));
-      padding: 12px; text-align: center;
-    }
-    .promo-title { font-weight: 800; font-size: 16px; letter-spacing: 0.3px; }
- 
-    @media (max-width: 600px) {
-      .section-wrapper { flex-direction: column; }
-      .section-wrapper .section { margin: 6px 0; }
-      .popup-card { padding: 20px; }
-      .popup-title { font-size: 18px; }
-    }
-    @media (max-width: 480px) {
-      .btn { width: 100%; justify-content: center; }
-      .header { font-size: 14px; padding: 10px 12px; }
-      .toast { font-size: 12px; padding: 10px 18px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">The Cricsters ✘ BigCric</div>
- 
-    <div class="player-panel">
-      <div class="player-wrapper" data-shaka-player-container id="playerContainer">
-        <video id="video" class="video-player" data-shaka-player autoplay playsinline
-          controlsList="nodownload noremoteplayback" oncontextmenu="return false"></video>
-        <div id="errorOverlay" class="error-overlay">
-          <p id="errorMsg" class="error-message">Something went wrong. Please try again.</p>
-          <button class="retry-btn" id="retryBtn">Retry</button>
-        </div>
-      </div>
-    </div>
- 
-    <div id="toast" class="toast"></div>
- 
-    <div id="tgPopup" class="popup-overlay">
-      <div class="popup-card">
-        <div class="popup-title">Join The Cricsters ✘ BigCric</div>
-        <button class="popup-btn popup-btn-primary" id="tgJoinBtn1">Join Now</button>
-        <button class="popup-btn popup-btn-secondary" id="tgCloseBtn">Already Joined</button>
-      </div>
-    </div>
- 
-    <div class="section-wrapper">
-      <div class="section">
-        <h3 class="section-title">Follow Us for Updates</h3>
-        <div class="section-row">
-          <a class="btn" id="joinTgBtn1" target="_blank" rel="noopener noreferrer">
-            <img class="btn-icon" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdqawMR26E_SKOhbCIAqNQCTZ-IUm1x-Rb1zqHhoqPbA" alt="Telegram" />
-            Join The Cricsters ✘ BigCric
-          </a>
-        </div>
-      </div>
-      <div class="section">
-        <h3 class="section-title">Share with Friends</h3>
-        <div class="section-row">
-          <button class="btn" id="btnShare">Share This Page Link</button>
-        </div>
-      </div>
-    </div>
- 
-    <a class="promo-card" href="https://wa.link/Paribookvvipho" target="_blank" rel="noopener noreferrer">
-      <img class="promo-image"
-        src="https://raw.githubusercontent.com/thecricstersxbigcric/test/refs/heads/main/pari.png"
-        alt="Promo" />
-      <div class="promo-content">
-        <div class="promo-title">Get Started</div>
-      </div>
-    </a>
-  </div>
-
- <script>
-  "use strict";
-
-  /* ============================================================
-     🔐  ADMIN SWITCH — EDIT ONLY THIS LINE TO CONTROL THE SITE
-     ============================================================
-     
-     isSiteON = true   →  Site works normally (streaming enabled)
-     isSiteON = false  →  Users are instantly redirected to Telegram
-     
-     ✏️  Change the value below and redeploy the file.
-     ============================================================ */
-  const isSiteON = true;
-  /* ============================================================ */
-
-  const CONFIG = {
-    telegramLink: "https://t.me/+uMLMcSi1UwNlODU1",
-    apiBase: "https://jwb-one.vercel.app/api/main"
-  };
-
-  // 🚦 If site is OFF → redirect immediately, before anything else loads
-  if (!isSiteON) {
-    window.location.replace(CONFIG.telegramLink);
-    // Stop further script execution
-    throw new Error("__SITE_OFF__");
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Live Stream Premium</title>
+<!-- Google Fonts for Modern Typography -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-SMZXC121E6"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-SMZXC121E6');
+</script>
+<style>
+  :root {
+    --bg-dark: #050505;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --primary-glow: rgba(42, 171, 238, 0.4);
+    --tg-blue: #2AABEE;
+  }
+  
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+  }
+  
+  body, html {
+    background-color: var(--bg-dark);
+    color: #fff;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* ============================================================
-     🟢  SITE IS ON — NORMAL PLAYER CODE BELOW
-     ============================================================ */
+  /* Ambient Background Glow */
+  .ambient-light {
+    position: absolute;
+    width: 60vw;
+    height: 60vh;
+    background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    opacity: 0.6;
+    pointer-events: none;
+    animation: pulseGlow 4s infinite alternate;
+  }
 
-  const DOM = {
-    video: document.getElementById("video"),
-    playerContainer: document.getElementById("playerContainer"),
-    errorOverlay: document.getElementById("errorOverlay"),
-    errorMsg: document.getElementById("errorMsg"),
-    retryBtn: document.getElementById("retryBtn"),
-    tgPopup: document.getElementById("tgPopup"),
-    toast: document.getElementById("toast"),
-    btnShare: document.getElementById("btnShare"),
-    joinTgBtn1: document.getElementById("joinTgBtn1"),
-    tgJoinBtn1: document.getElementById("tgJoinBtn1"),
-    tgCloseBtn: document.getElementById("tgCloseBtn")
-  };
+  @keyframes pulseGlow {
+    0% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
+    100% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.7; }
+  }
 
-  let player = null;
-  let ui = null;
-  let toastTimer = null;
+  /* Main Video Container */
+  .app-container {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    gap: 20px;
+  }
 
-  function showToast(msg, duration = 2600) {
-    clearTimeout(toastTimer);
-    DOM.toast.textContent = msg;
-    DOM.toast.classList.add("show");
-    toastTimer = setTimeout(() => DOM.toast.classList.remove("show"), duration);
+  .player-wrapper {
+    flex: 1;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #000;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(42, 171, 238, 0.15);
+  }
+
+  #main-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Floating Bottom Bar (Glassmorphism) */
+  .floating-footer {
+    height: auto;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 10px;
+  }
+
+  .glass-bar {
+    display: inline-flex;
+    align-items: center;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--glass-border);
+    padding: 12px 24px;
+    border-radius: 50px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .telegram-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #2AABEE, #1c88c3);
+    padding: 10px 24px;
+    border-radius: 50px;
+    text-decoration: none;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 4px 15px var(--primary-glow);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .telegram-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255,255,255,0.2);
+    transform: rotate(45deg) translateX(-100%);
+    transition: all 0.5s ease;
+  }
+
+  .telegram-btn:hover::after {
+    transform: rotate(45deg) translateX(100%);
+  }
+
+  .telegram-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--primary-glow);
+  }
+
+  .telegram-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .telegram-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: #fff;
+  }
+
+  /* Custom Join Modal */
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+  }
+
+  .modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .modal-content {
+    background: rgba(25, 30, 40, 0.8);
+    border: 1px solid var(--glass-border);
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  }
+
+  .modal-overlay.active .modal-content {
+    transform: translateY(0) scale(1);
+  }
+
+  .modal-icon {
+    width: 70px;
+    height: 70px;
+    background: rgba(42, 171, 238, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    border: 2px solid var(--tg-blue);
+  }
+
+  .modal-icon svg {
+    width: 35px;
+    height: 35px;
+    fill: var(--tg-blue);
+  }
+
+  .modal-content h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    font-weight: 800;
+  }
+
+  .modal-content p {
+    color: #a0aec0;
+    font-size: 15px;
+    margin-bottom: 30px;
+    line-height: 1.5;
+  }
+
+  .modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .btn-join {
+    background: var(--tg-blue);
+    color: white;
+    text-decoration: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: background 0.3s;
+  }
+
+  .btn-join:hover {
+    background: #1c88c3;
+  }
+
+  .btn-skip {
+    background: transparent;
+    color: #a0aec0;
+    border: none;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: color 0.3s, background 0.3s;
+  }
+
+  .btn-skip:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+  }
+
+  /* Loader and Error States */
+  .loader-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    z-index: 1;
+  }
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-top-color: var(--tg-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+
+  .status-text {
+    font-size: 14px;
+    color: #a0aec0;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<div class="ambient-light"></div>
+
+<div class="app-container">
+  <!-- Video Player Box -->
+  <div class="player-wrapper">
+    <div class="loader-container" id="loading-state">
+      <div class="spinner"></div>
+      <div class="status-text" id="status-message">Connecting Stream...</div>
+    </div>
+    
+    <!-- Iframe is completely restricted from triggering popups or redirecting parent -->
+    <iframe id="main-iframe" 
+            allowfullscreen 
+            allow="encrypted-media; fullscreen; autoplay" 
+            sandbox="allow-scripts allow-same-origin allow-presentation"
+            style="opacity: 0; transition: opacity 0.5s ease;">
+    </iframe>
+  </div>
+
+  <!-- Glassmorphism Bottom Bar -->
+  <div class="floating-footer">
+    <div class="glass-bar">
+      <span style="margin-right: 15px; font-weight: 600; font-size: 14px; color: #cbd5e1;">Support Us:</span>
+      <a href="https://t.me/+w_oKk-2R2OgyNDNl" target="_blank" class="telegram-btn">
+        <div class="telegram-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M9.993 15.674l-.398 5.604c.57 0 .817-.245 1.113-.54l2.67-2.557 5.53 4.047c1.014.558 1.734.264 1.987-.939l3.6-16.86.001-.001c.3-1.4-.506-1.95-1.496-1.58L1.27 9.64c-1.37.53-1.35 1.29-.233 1.64l5.68 1.77L19.29 5.73c.59-.39 1.13-.175.69.215"/>
+          </svg>
+        </div>
+        <span>Join @crixzy</span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Glassmorphism Welcome Modal -->
+<div class="modal-overlay" id="tg-modal">
+  <div class="modal-content">
+    <div class="modal-icon">
+      <svg viewBox="0 0 24 24">
+        <path d="M9.993 15.674l-.398 5.604c.57 0 .817-.245 1.113-.54l2.67-2.557 5.53 4.047c1.014.558 1.734.264 1.987-.939l3.6-16.86.001-.001c.3-1.4-.506-1.95-1.496-1.58L1.27 9.64c-1.37.53-1.35 1.29-.233 1.64l5.68 1.77L19.29 5.73c.59-.39 1.13-.175.69.215"/>
+      </svg>
+    </div>
+    <h2>Join our Telegram!</h2>
+    <p>Get instant updates, backup links, and chat with the community. Don't miss out on any streams!</p>
+    <div class="modal-actions">
+      <a href="https://t.me/+w_oKk-2R2OgyNDNl" target="_blank" class="btn-join" id="btn-join-now">Join Channel Now</a>
+      <button class="btn-skip" id="btn-skip">Maybe Later</button>
+    </div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+
+  // Modal Logic (Replaces the ugly confirm popup)
+  const modal = document.getElementById('tg-modal');
+  const skipBtn = document.getElementById('btn-skip');
+  const joinBtn = document.getElementById('btn-join-now');
+
+  // Show modal with a slight delay for smooth effect
+  setTimeout(() => {
+    modal.classList.add('active');
+  }, 300);
+
+  // Close modal logic
+  const closeModal = () => modal.classList.remove('active');
+  skipBtn.addEventListener('click', closeModal);
+  joinBtn.addEventListener('click', closeModal);
+
+  // Video Fetching Logic
+  const urlParams = new URLSearchParams(window.location.search);
+  const id = urlParams.get('id');
+  const iframe = document.getElementById('main-iframe');
+  const loader = document.getElementById('loading-state');
+  const statusMsg = document.getElementById('status-message');
+
+  if (id) {
+    fetch('https://allrounder2-0.pages.dev/id.json')
+      .then(res => res.json())
+      .then(data => {
+        const targetData = data.iframes.find(item => item.id === id);
+        
+        if (targetData && targetData.iframeSrc) {
+          iframe.src = targetData.iframeSrc;
+          
+          // Fade in iframe once loaded
+          iframe.onload = () => {
+            loader.style.display = 'none';
+            iframe.style.opacity = '1';
+          };
+
+          // Hit tracking
+          if (targetData.hit) {
+            fetch(targetData.hit).catch(() => {});
+          }
+        } else {
+          showError("Stream not found or expired.");
+        }
+      })
+      .catch(() => {
+        showError("Failed to load stream data.");
+      });
+  } else {
+    showError("Invalid URL. No stream ID provided.");
   }
 
   function showError(msg) {
-    DOM.errorMsg.textContent = msg || "Something went wrong. Please try again.";
-    DOM.errorOverlay.classList.add("visible");
+    const spinner = document.querySelector('.spinner');
+    if (spinner) spinner.style.display = 'none';
+    statusMsg.style.color = '#ef4444'; // Red error text
+    statusMsg.innerText = msg;
   }
 
-  function hideError() {
-    DOM.errorOverlay.classList.remove("visible");
-  }
-
-  function extractCookieFromUrl(url) {
-    try {
-      const match = url.match(/[?&](__hdnea__=[^&]+)/);
-      return match ? match[1] : null;
-    } catch (_) {
-      return null;
-    }
-  }
-
-  function stripHdneaFromUrl(url) {
-    try {
-      const [base, query] = url.split("?");
-      if (!query) return url;
-      const remaining = query.split("&").filter(p => !p.startsWith("__hdnea__=")).join("&");
-      return remaining ? base + "?" + remaining : base;
-    } catch (_) {
-      return url;
-    }
-  }
-
-  async function getChannelById(id) {
-    const url = `${CONFIG.apiBase}?id=${encodeURIComponent(id)}`;
-    const response = await fetch(url, { cache: "no-store" });
-
-    if (!response.ok) {
-      if (response.status === 404) throw new Error(`Channel "${id}" not found.`);
-      throw new Error(`API error ${response.status}`);
-    }
-
-    const channel = await response.json();
-
-    if (
-      !channel ||
-      typeof channel.name !== "string" ||
-      typeof channel.streamUrl !== "string" ||
-      !channel.clearKey ||
-      typeof channel.clearKey.keyId !== "string" ||
-      typeof channel.clearKey.key !== "string"
-    ) {
-      throw new Error("Invalid channel data from API");
-    }
-
-    return channel;
-  }
-
-  async function loadShakaPlayer(channel, cookie) {
-    hideError();
-
-    if (!window.shaka || !shaka.Player.isBrowserSupported()) {
-      showError("This browser is not supported for this stream.");
-      return;
-    }
-
-    if (!ui) {
-      ui = new shaka.ui.Overlay(new shaka.Player(DOM.video), DOM.playerContainer, DOM.video);
-      player = ui.getControls().getPlayer();
-      player.addEventListener("error", (event) => {
-        const code = event.detail && event.detail.code ? event.detail.code : "unknown";
-        showError("Playback error (" + code + "). Tap Retry.");
-      });
-    }
-
-    player.configure({
-      drm: {
-        clearKeys: {
-          [channel.clearKey.keyId]: channel.clearKey.key
-        }
-      }
-    });
-
-    player.getNetworkingEngine().clearAllRequestFilters();
-    player.getNetworkingEngine().registerRequestFilter((type, request) => {
-      request.headers["Referer"] = "https://www.jiotv.com/";
-      request.headers["User-Agent"] = "plaYtv/7.1.3 (Linux;Android 13) ygx/69.1 ExoPlayerLib/824.0";
-      if (cookie) {
-        request.headers["Cookie"] = cookie;
-      }
-
-      if (
-        cookie &&
-        (type === shaka.net.NetworkingEngine.RequestType.MANIFEST ||
-          type === shaka.net.NetworkingEngine.RequestType.SEGMENT) &&
-        request.uris[0] &&
-        !request.uris[0].includes("__hdnea__=")
-      ) {
-        const sep = request.uris[0].includes("?") ? "&" : "?";
-        request.uris[0] += sep + cookie;
-      }
-    });
-
-    const loadUrl = cookie ? stripHdneaFromUrl(channel.streamUrl) : channel.streamUrl;
-    await player.load(loadUrl);
-    showToast("Stream loaded");
-  }
-
-  async function startPlayer() {
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const requestedId = (params.get("id") || params.get("tvid") || "").trim();
-
-      if (!requestedId) {
-        showError("Missing channel ID. Add ?id=s1 to the URL.");
-        return;
-      }
-
-      const channel = await getChannelById(requestedId);
-      const cookie = extractCookieFromUrl(channel.streamUrl);
-      document.title = channel.name + " - BigCric";
-      await loadShakaPlayer(channel, cookie);
-    } catch (err) {
-      showError(err && err.message ? err.message : "Failed to start playback.");
-    }
-  }
-
-  async function handleShare() {
-    const shareData = { title: document.title, text: "Watch live on BigCric", url: window.location.href };
-    if (navigator.share) {
-      try { await navigator.share(shareData); return; } catch (_) {}
-    }
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      showToast("Link copied");
-    } catch (_) {
-      prompt("Copy this link:", window.location.href);
-    }
-  }
-
-  function showTgPopup() { DOM.tgPopup.classList.add("visible"); }
-  function closeTgPopup() { DOM.tgPopup.classList.remove("visible"); }
-
-  function initEvents() {
-    DOM.retryBtn.addEventListener("click", startPlayer);
-    DOM.btnShare.addEventListener("click", handleShare);
-    DOM.tgJoinBtn1.addEventListener("click", () => {
-      window.open(CONFIG.telegramLink, "_blank");
-      closeTgPopup();
-      startPlayer();
-    });
-    DOM.tgCloseBtn.addEventListener("click", () => {
-      closeTgPopup();
-      startPlayer();
-    });
-    DOM.joinTgBtn1.href = CONFIG.telegramLink;
-    window.addEventListener("load", showTgPopup);
-  }
-
-  shaka.polyfill.installAll();
-  initEvents();
+});
 </script>
 </body>
 </html>
